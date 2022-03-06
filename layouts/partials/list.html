@@ -24,23 +24,46 @@
     {{ end }}
 {{ end }}
 
-<ul>
+{{ $currentPage := math.Floor 0 }}
+{{ $totalPages := false }}
+{{ if $maxlistlen }}
+    {{ $totalPages = math.Ceil (div (float (len $leafpages)) (float $maxlistlen)) }}
+{{ end }}
+<ul class="page_{{ $currentPage }}">
     {{ range $idx, $val := $leafpages }}
-        {{if or (eq $maxlistlen false) (lt $idx $maxlistlen) }}
-            <li>
-                <a href="{{ .Permalink }}">
-                {{ if and $showDate .Date }}{{ .Date.Format "2006-01-02" }} | {{ end }}
-                {{ if $translate }}
-                    {{ default .Title (i18n (printf "%s-%s" .Data.Singular .Title)) }}
-                {{ else }}
-                    {{ .Title }}
+        {{ $page := 0 }}
+        {{ if $maxlistlen }}
+            {{ $page = math.Floor (div $idx $maxlistlen) }}
+            {{ if ne $page $currentPage }}
+                {{ $currentPage = $page }}
+                {{ if ne $currentPage $totalPages }}
+                    </ul>
+                    <ul class="page_{{ $currentPage }}" style="display: none">
                 {{ end }}
-                </a>
-                {{ if $showCount }}
-                    {{ len .Data.Pages }}
-                {{ end }}
-            {{ if $showSection }}({{ .Parent.Title }}){{ end }}
-            </li>
+            {{ end }}
         {{ end }}
+        <li>
+            <a href="{{ .Permalink }}">
+            {{ if and $showDate .Date }}{{ .Date.Format "2006-01-02" }} | {{ end }}
+            {{ if $translate }}
+                {{ default .Title (i18n (printf "%s-%s" .Data.Singular .Title)) }}
+            {{ else }}
+                {{ .Title }}
+            {{ end }}
+            </a>
+            {{ if $showCount }}
+                {{ len .Data.Pages }}
+            {{ end }}
+        {{ if $showSection }}({{ .Parent.Title }}){{ end }}
+        </li>
     {{ end }}
 </ul>
+
+{{ if and $maxlistlen (ge $totalPages 1) }}
+<nav aria-label="Page navigation example">
+    <ul class="pagination">
+        <li class="page-item"><button type="button" class="btn btn-link btn-prev" disabled autocomplete="false">Previous</button></li>
+        <li class="page-item"><button type="button" class="btn btn-link btn-next" autocomplete="false">Next</button></li>
+    </ul>
+</nav>
+{{ end }}

@@ -3,6 +3,8 @@
 <script src="{{ $secureJS.Permalink }}" type="text/javascript" integrity="{{ $secureJS.Data.Integrity }}"></script>
 {{ end }}
 
+{{ with resources.GetMatch "/hugo-split-gallery/main.js" }}<script src="{{ .Permalink }}"></script>{{ end }}
+
 {{ if (default false ($.Site.Params.enableDownloadAll)) }}
 {{ range slice "jszip/*.js" "jszip-utils/*.js" "file-saver/*.js" }}
 {{ $secureJS := resources.GetMatch (printf "/vendor/%s" .) | resources.Fingerprint "sha512" }}

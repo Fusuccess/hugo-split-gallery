@@ -75,6 +75,19 @@ button.btn {
   box-shadow: none;
 }
 
+ul.pagination .page-item:first-child .btn-link {
+  border-top-left-radius: .25rem;
+  border-bottom-left-radius: .25rem;
+}
+ul.pagination .page-item:last-child .btn-link {
+  border-top-right-radius: .25rem;
+  border-bottom-right-radius: .25rem;
+}
+ul.pagination button.btn-link {
+  padding: .15rem .75rem;
+  border-radius: 0rem;
+}
+
 .c4-izmir {
   --overlay-opacity: .6;
   --padding: 0;

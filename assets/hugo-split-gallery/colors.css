@@ -16,6 +16,11 @@ a:hover, button.btn:hover {
   text-decoration: underline dotted #008000 1px;
 }
 
+ul.pagination button.btn-link {
+  /* border: 1px solid #091b03; */
+  background-color: #091b03;
+}
+
 .c4-izmir {
   --primary-color: #113106;
 }

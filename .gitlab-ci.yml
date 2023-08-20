@@ -62,7 +62,6 @@ build-previous:
   rules:
     - if: $CI_PIPELINE_SOURCE == "push"
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_PIPELINE_SOURCE == "schedule"
 
 test:
   stage: test
@@ -90,31 +89,31 @@ test:
 
 pages:
   stage: deploy
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
+      variables:
+        DEPLOY_URL: $CI_PAGES_URL
+        HUGOCONFIG: .config.ci.toml
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "next"
+      variables:
+        DEPLOY_URL: $CI_PAGES_URL/next
+        HUGOCONFIG: .config.ci-next.toml
+  cache:
+    key: gitlab-pages
+    paths: [public]
+  environment:
+    name: pages/$CI_COMMIT_BRANCH
+    action: start
+    url: $DEPLOY_URL
   script: |
-    echo "Downloading previous artifacts..."
-    wget https://gitlab.com/tmuguet/hugo-split-gallery/-/jobs/artifacts/main/download?job=pages -O artifact.zip
-    unzip -q artifact.zip
-    if [ -d "public/next" ]; then mv public/next next; fi;
-    mv public current
-
     echo "Preparing Hugo"
     apk update
     apk add hugo
     hugo version
     cd ${CI_PROJECT_DIR}/exampleSite
 
-    if [ $CI_COMMIT_BRANCH == "main" ]; then
-      echo "Generating main site..."
-      hugo --config .config.ci.toml
-      if [ -d "${CI_PROJECT_DIR}/next" ]; then mv ${CI_PROJECT_DIR}/next ${CI_PROJECT_DIR}/public; fi;
-    else
-      echo "Generating next site..."
-      hugo --config .config.ci-next.toml
-      mv ${CI_PROJECT_DIR}/current/* ${CI_PROJECT_DIR}/public
-    fi
+    echo "Generating site..."
+    hugo --config $HUGOCONFIG
   artifacts:
     paths:
       - public
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
-    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "next"

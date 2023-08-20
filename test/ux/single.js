@@ -6,7 +6,8 @@ fixture("Single UX")
 test("Clicking on a track marker should display its popup", async t => {
     await t
         .expect(Selector("#mapid .leaflet-popup-pane").hasChildElements).notOk()
-        .click(Selector("#mapid .leaflet-marker-pane .awesome-marker.awesome-marker-icon-orange"))
+        .hover(Selector("#mapid .leaflet-marker-pane .awesome-marker.awesome-marker-icon-orange"))
+        .click(Selector("#mapid .leaflet-marker-pane .awesome-marker.awesome-marker-icon-cadetblue"))
         .expect(Selector("#mapid .leaflet-popup-pane").hasChildElements).ok()
         .expect(Selector("#mapid .leaflet-popup-pane .leaflet-popup-content").innerText).contains("2021-03-01 Lac Lauvitel.kml")
         .expect(Selector("#mapid .leaflet-popup-pane .leaflet-popup-content").innerText).contains("Download the track")
@@ -26,13 +27,14 @@ test.skip("Hovering on a track should bring it up", async t => {
         .hover(Selector("#mapid .leaflet-marker-pane .awesome-marker.awesome-marker-icon-green").nth(0))
         .expect(Selector("#mapid path.leaflet-interactive").nth(-1).getAttribute('stroke')).eql('#72B026');
 });
-test("Hovering on a photo should move the map", async t => {
+test("Hovering on a photo should highlight its marker and move the map", async t => {
     const map = Selector("#mapid .leaflet-proxy");
     const initialStyle = map.style; // Using transform property as a proxy to detect movement
 
     await t
         .hover(Selector(".split-grid a").nth(0))
-        .expect(map.style).notEql(initialStyle);
+        .expect(map.style).notEql(initialStyle)
+        .expect(Selector("#mapid .leaflet-marker-pane .awesome-marker.awesome-marker-icon-purple").exists).ok();
 });
 test("Clicking on a photo should launch gallery", async t => {
     await t

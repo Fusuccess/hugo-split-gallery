@@ -23,6 +23,10 @@ build-latest:
       grep 'WARN' build-next.log
       exit 1
     fi
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_PIPELINE_SOURCE == "schedule"
 
 build-previous:
   stage: build
@@ -55,6 +59,10 @@ build-previous:
       grep 'WARN' build-next.log
       exit 1
     fi
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_PIPELINE_SOURCE == "schedule"
 
 test:
   stage: test
@@ -75,6 +83,10 @@ test:
     cd ${CI_PROJECT_DIR}
 
     /opt/testcafe/docker/testcafe-docker.sh firefox:headless ./test/**/** --app "cd ${CI_PROJECT_DIR}/exampleSite && hugo server -p 8080 --bind 0.0.0.0 --config .config.ci.toml --disableLiveReload --renderToDisk --watch=false"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_PIPELINE_SOURCE == "schedule"
 
 pages:
   stage: deploy
@@ -104,5 +116,5 @@ pages:
     paths:
       - public
   rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-    - if: $CI_COMMIT_BRANCH == "next"
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "next"

@@ -1,5 +1,7 @@
 var Promise = window.Promise || JSZip.external.Promise;
 var map = null;
+var mapgroups = [];
+var mapmarkers = [];
 var colorMap = {
   'red': '#D63E2A', 'orange': '#F59630', 'green': '#72B026', 'blue': '#38AADD', 'purple': '#D252B9',
   'darkred': '#A23336', 'darkblue': '#0067A3', 'darkgreen': '#728224', 'darkpurple': '#5B396B', 'cadetblue': '#436978',
@@ -20,7 +22,13 @@ var iconSelected = L.AwesomeMarkers.icon({
   markerColor: 'purple',
   prefix: 'fa'
 });
-var iconsMap = {};
+var iconsMap = {
+  'cadetblue': L.AwesomeMarkers.icon({
+    icon: 'location-arrow',
+    markerColor: 'cadetblue',
+    prefix: 'fa'
+  })
+};
 
 function initMap() {
   if ($("#mapid").length === 0) return;
@@ -66,7 +74,8 @@ function showTrack(track, color) {
       if (start === null) {
         start = latlngs[0];
         L.marker(start, {
-          icon: iconsMap[color]
+          icon: iconsMap[color],
+          zIndexOffset: 10,
         }).addTo(featuregroup);
       }
       end = latlngs[latlngs.length - 1];
@@ -85,7 +94,8 @@ function showTrack(track, color) {
   if (start !== null && end !== null) {
     if (!start.equals(end, 100)) {
       L.marker(end, {
-        icon: iconsMap[color]
+        icon: iconsMap[color],
+        zIndexOffset: 10,
       }).addTo(featuregroup);
     }
   }
@@ -122,29 +132,104 @@ function addMarker(latlng, idx) {
   return marker;
 }
 
+function onMouseOverTrack(featuregroup, color, bind) {
+  featuregroup.bringToFront();
+  featuregroup.eachLayer(function (layer) {
+    if (layer instanceof L.Marker) {
+      layer.setIcon(iconsMap['cadetblue']);
+      layer.setZIndexOffset(1000);
+    } else {
+      layer.setStyle({ weight: 8, color: colorMap['cadetblue'], opacity: 1 });
+    }
+  });
+  $.each(mapgroups, function (i, group) {
+    if (group == featuregroup) return;
+
+    group.eachLayer(function (layer) {
+      if (layer instanceof L.Marker) {
+        layer.setOpacity(0.6);
+      } else {
+        layer.setStyle({ weight: 5, color: colorMap[group._color], opacity: 0.6 });
+      }
+    });
+  });
+  $.each(mapmarkers, function (i, marker) {
+    marker.setOpacity(0.2);
+  });
+  if (bind) {
+    featuregroup.once('mouseout', function() {
+      onMouseOutTrack(featuregroup, color, true);
+    });
+  }
+}
+
+function onMouseOutTrack(featuregroup, color, bind) {
+  featuregroup.eachLayer(function (layer) {
+    if (layer instanceof L.Marker) {
+      layer.setZIndexOffset(10);
+      layer.setIcon(iconsMap[color]);
+    } else {
+      layer.setStyle({ weight: 5, color: colorMap[color], opacity: 0.75 });
+    }
+  });
+  $.each(mapgroups, function (i, group) {
+    if (group == featuregroup) return;
+
+    group.eachLayer(function (layer) {
+      if (layer instanceof L.Marker) {
+        layer.setOpacity(1);
+      } else {
+        layer.setStyle({ weight: 5, color: colorMap[group._color], opacity: 0.75 });
+      }
+    });
+  });
+  $.each(mapmarkers, function (i, marker) {
+    marker.setOpacity(0.5);
+  });
+  if (bind) {
+    featuregroup.once('mouseover', function() {
+      onMouseOverTrack(featuregroup, color, true);
+    });
+  }
+}
+
 function add(tracks, markers, index) {
   var b = null;
+  var featuregroups = [];
   $.each(tracks, function (i, track) {
-    var featuregroup = showTrack(track[0], colors[nextColor()]);
+    var color = colors[nextColor()];
+    var featuregroup = showTrack(track[0], color);
     if (featuregroup) {
-      featuregroup.on('mouseover', function () {
-        featuregroup.bringToFront();
+      featuregroup._color = color;
+      mapgroups.push(featuregroup);
+      // For some reason, mouseover is triggered continuously, and not only when mouse enter the feature group
+      // So we have to juggle with binding mouseover/mouseout
+      featuregroup.once('mouseover', function () {
+        onMouseOverTrack(featuregroup, color, true);
       });
       var featuregroupbounds = featuregroup.getBounds().pad(0.5);
       featuregroup.bindPopup(track[1]);
       b = (b === null) ? featuregroupbounds : b.extend(featuregroupbounds);
+      featuregroups.push(featuregroup);
     }
   });
   $.each(markers, function (i, marker) {
     var m = addMarker(marker[0], marker[1]);
+    mapmarkers.push(m);
     if (marker.length > 2) m.bindPopup(marker[2]);
   });
 
   if (index !== undefined && tracks.length > 0) {
     $('.split-grid a').eq(index).hover(function () {
       map.flyTo(b.getCenter());
+      $.each(featuregroups, function (i, featuregroup) {
+        onMouseOverTrack(featuregroup, featuregroup._color, false);
+      })
     }, function () {
       if (bounds) map.flyToBounds(bounds);
+      $.each(featuregroups, function (i, featuregroup) {
+        onMouseOutTrack(featuregroup, featuregroup._color, false);
+      })
     });
   }
 }

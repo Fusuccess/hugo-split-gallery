@@ -2,6 +2,10 @@
 
 ## 1.x branch
 
+### 1.5.1
+
+Fixed build with Hugo v0.112.0 and later.
+
 ### 1.5.0
 
 #### Content

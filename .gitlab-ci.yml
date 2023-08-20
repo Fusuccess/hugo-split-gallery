@@ -2,8 +2,7 @@ image: alpine:edge
 
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
-  HUGO_REFERENCE_VERSION: "0.83.1"
-  HUGO_MIN_VERSION: "0.73.0"
+  HUGO_REFERENCE_VERSION: "0.115.4"
 
 build-latest:
   stage: build
@@ -24,15 +23,27 @@ build-latest:
       grep 'WARN' build-next.log
       exit 1
     fi
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_PIPELINE_SOURCE == "schedule"
 
-build-refversion:
+build-previous:
   stage: build
   # Old versions seems not to be available on Alpine packages, so revert to the good old method
+  parallel:
+    matrix:
+      - VERSION:
+        - "0.115.4"
+        - "0.112.7"
+        - "0.100.2"
+        - "0.83.1"
+        - "0.73.0"
   script: |
-    wget https://github.com/gohugoio/hugo/releases/download/v${HUGO_REFERENCE_VERSION}/hugo_${HUGO_REFERENCE_VERSION}_Linux-64bit.tar.gz
+    wget https://github.com/gohugoio/hugo/releases/download/v${VERSION}/hugo_${VERSION}_Linux-64bit.tar.gz
     mkdir -p bin
     cd bin
-    tar -xzf $CI_PROJECT_DIR/hugo_${HUGO_REFERENCE_VERSION}_Linux-64bit.tar.gz
+    tar -xzf $CI_PROJECT_DIR/hugo_${VERSION}_Linux-64bit.tar.gz
     export PATH=$PATH:${CI_PROJECT_DIR}/bin
     cd ${CI_PROJECT_DIR}/exampleSite
     hugo version
@@ -48,30 +59,10 @@ build-refversion:
       grep 'WARN' build-next.log
       exit 1
     fi
-
-build-minversion:
-  stage: build
-  # Old versions seems not to be available on Alpine packages, so revert to the good old method
-  script: |
-    wget https://github.com/gohugoio/hugo/releases/download/v${HUGO_MIN_VERSION}/hugo_${HUGO_MIN_VERSION}_Linux-64bit.tar.gz
-    mkdir -p bin
-    cd bin
-    tar -xzf $CI_PROJECT_DIR/hugo_${HUGO_MIN_VERSION}_Linux-64bit.tar.gz
-    export PATH=$PATH:${CI_PROJECT_DIR}/bin
-    cd ${CI_PROJECT_DIR}/exampleSite
-    hugo version
-    hugo --config .config.ci.toml 2>&1 | tee build.log
-    if grep -q 'WARN' build.log; then
-      echo "Failed because of the following warnings:"
-      grep 'WARN' build.log
-      exit 1
-    fi
-    hugo --config .config.ci-next.toml 2>&1 | tee build-next.log
-    if grep -q 'WARN' build-next.log; then
-      echo "Failed because of the following warnings:"
-      grep 'WARN' build-next.log
-      exit 1
-    fi
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_PIPELINE_SOURCE == "schedule"
 
 test:
   stage: test
@@ -92,6 +83,10 @@ test:
     cd ${CI_PROJECT_DIR}
 
     /opt/testcafe/docker/testcafe-docker.sh firefox:headless ./test/**/** --app "cd ${CI_PROJECT_DIR}/exampleSite && hugo server -p 8080 --bind 0.0.0.0 --config .config.ci.toml --disableLiveReload --renderToDisk --watch=false"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_PIPELINE_SOURCE == "schedule"
 
 pages:
   stage: deploy
@@ -121,5 +116,5 @@ pages:
     paths:
       - public
   rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-    - if: $CI_COMMIT_BRANCH == "next"
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "next"

@@ -6,7 +6,7 @@ fixture("Single UX")
 test("Clicking on a track marker should display its popup", async t => {
     await t
         .expect(Selector("#mapid .leaflet-popup-pane").hasChildElements).notOk()
-        .click(Selector("#mapid .leaflet-marker-pane .awesome-marker.awesome-marker-icon-green"))
+        .click(Selector("#mapid .leaflet-marker-pane .awesome-marker.awesome-marker-icon-orange"))
         .expect(Selector("#mapid .leaflet-popup-pane").hasChildElements).ok()
         .expect(Selector("#mapid .leaflet-popup-pane .leaflet-popup-content").innerText).contains("2021-03-01 Lac Lauvitel.kml")
         .expect(Selector("#mapid .leaflet-popup-pane .leaflet-popup-content").innerText).contains("Download the track")

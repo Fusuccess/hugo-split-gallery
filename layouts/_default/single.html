@@ -70,7 +70,7 @@ $(document).ready(function () {
     {{ range where .Site.Pages "Kind" "taxonomy" }}
       {{ $icon := partial "icons/gettaxonomy.html" .Data.Plural }}
       {{ $key := .Data.Singular }}
-      {{ $val := $page.Params.Get .Data.Plural }}
+      {{ $val := index $page.Params .Data.Plural }}
       {{ if $val }}
         {{- if not (reflect.IsSlice $val) -}}{{- $val = slice $val -}}{{- end -}}
         {{- $label := default .Data.Plural (i18n .Data.Plural) | humanize -}}

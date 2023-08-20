@@ -2,8 +2,8 @@
 {{ $taxonomy_term := . }}
 
 {{ with site.Params.taxonomies }}
-    {{ with .Get ($taxonomy_term) }}
-        {{ $icon = .Get "icon" }}
+    {{ with index . $taxonomy_term }}
+        {{ $icon = index . "icon" }}
     {{ end }}
 {{ end }}
 

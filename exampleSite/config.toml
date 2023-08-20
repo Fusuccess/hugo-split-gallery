@@ -65,9 +65,9 @@ DefaultContentLanguage = "en"
   [languages.fr]
     title = "Site exemple du thème Hugo Split Gallery"
     languageCode = "fr-fr"
-    showTranslations = false
-    map2gpx = "fr"
     weight = 2
 
     [languages.fr.params]
       description = "Gallerie photo inspirée de Hugo Split Theme"
+      showTranslations = false
+      map2gpx = "fr"

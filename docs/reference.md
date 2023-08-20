@@ -2,6 +2,8 @@
 
 ## Site parameters reference
 
+* `columns`: number of columns to display for main lists (optional, defaults to `1`)
+* `columnsMinItems`: minimum number of items for displaying into columns (optional, defaults to `10`)
 * `customCss`: list of paths to custom CSS files to include (optional, defaults to empty list)
 * `customJs`: list of paths to custom JavaScript files to include (optional, defaults to empty list)
 * `enableDownloadAll`: enable _Download all photos_ link on posts (optional, defaults to `true`)

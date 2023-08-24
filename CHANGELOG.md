@@ -2,6 +2,13 @@
 
 ## 1.x branch
 
+### 1.6.0
+
+#### UX
+
+* Enhancement: Enable lists on multiple columns
+* Enhancement: Highlight track and markers on hover from map and from gallery
+
 ### 1.5.1
 
 Fixed build with Hugo v0.112.0 and later.

@@ -37,6 +37,8 @@ DefaultContentLanguage = "en"
   showTranslations = true
   map2gpx = "en"
   paginate = 10
+  # columns = 2
+  # columnsMinItems = 10
 
   [params.taxonomies]
     [params.taxonomies.locations]

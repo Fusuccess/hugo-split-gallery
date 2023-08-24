@@ -5,6 +5,7 @@
 {{ $showSection := false }}
 {{ $translate := false }}
 {{ $maxlistlen := false }}
+{{ $columns := default 1 ($.Site.Params.columns) }}
 
 {{ if eq .Kind "page" }}
     {{ warnf "Should not be called here"}}
@@ -24,7 +25,13 @@
     {{ end }}
 {{ end }}
 
-<ul>
+{{ if gt $columns 1 }}
+  {{ if lt (len $leafpages) (default 10 $.Site.Params.columnsMinItems) }}
+    {{ $columns = 1 }}
+  {{ end }}
+{{ end }}
+
+<ul style="columns: {{ $columns }};">
     {{ range $idx, $val := $leafpages }}
         {{if or (eq $maxlistlen false) (lt $idx $maxlistlen) }}
             <li>

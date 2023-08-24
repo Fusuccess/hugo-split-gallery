@@ -1,5 +1,7 @@
 var Promise = window.Promise || JSZip.external.Promise;
 var map = null;
+var mapgroups = [];
+var mapmarkers = [];
 var colorMap = {
   'red': '#D63E2A', 'orange': '#F59630', 'green': '#72B026', 'blue': '#38AADD', 'purple': '#D252B9',
   'darkred': '#A23336', 'darkblue': '#0067A3', 'darkgreen': '#728224', 'darkpurple': '#5B396B', 'cadetblue': '#436978',
@@ -20,7 +22,13 @@ var iconSelected = L.AwesomeMarkers.icon({
   markerColor: 'purple',
   prefix: 'fa'
 });
-var iconsMap = {};
+var iconsMap = {
+  'cadetblue': L.AwesomeMarkers.icon({
+    icon: 'location-arrow',
+    markerColor: 'cadetblue',
+    prefix: 'fa'
+  })
+};
 
 function initMap() {
   if ($("#mapid").length === 0) return;
@@ -62,11 +70,12 @@ function showTrack(track, color) {
       layers[i].addTo(featuregroup);
 
       var latlngs = layers[i].getLatLngs();
-      
+
       if (start === null) {
         start = latlngs[0];
         L.marker(start, {
-          icon: iconsMap[color]
+          icon: iconsMap[color],
+          zIndexOffset: 10,
         }).addTo(featuregroup);
       }
       end = latlngs[latlngs.length - 1];
@@ -85,7 +94,8 @@ function showTrack(track, color) {
   if (start !== null && end !== null) {
     if (!start.equals(end, 100)) {
       L.marker(end, {
-        icon: iconsMap[color]
+        icon: iconsMap[color],
+        zIndexOffset: 10,
       }).addTo(featuregroup);
     }
   }
@@ -114,37 +124,114 @@ function addMarker(latlng, idx) {
 
   $('.split-grid a').eq(idx).hover(function () {
     map.flyTo(marker.getLatLng());
-    marker.setOpacity(1).setIcon(iconSelected);
+    marker.setZIndexOffset(1000);
+    marker.setIcon(iconSelected);
+    marker.setOpacity(1);
   }, function () {
-    marker.setOpacity(0.5).setIcon(iconDefault);
+    marker.setZIndexOffset(0);
+    marker.setIcon(iconDefault);
+    marker.setOpacity(0.5);
     if (bounds) map.flyToBounds(bounds);
   });
   return marker;
 }
 
+function highlightFeaturegroup(featuregroup) {
+  featuregroup.bringToFront();
+  featuregroup.eachLayer(function (layer) {
+    if (layer instanceof L.Marker) {
+      layer.setZIndexOffset(1000);
+      layer.setIcon(iconsMap['cadetblue']);
+      layer.setOpacity(1);
+    } else {
+      layer.setStyle({ weight: 8, color: colorMap['cadetblue'], opacity: 1 });
+    }
+  });
+}
+
+function lowlightAll() {
+  $.each(mapgroups, function (i, group) {
+    group.eachLayer(function (layer) {
+      if (layer instanceof L.Marker) {
+        layer.setOpacity(0.6);
+      } else {
+        layer.setStyle({ weight: 5, color: colorMap[group._color], opacity: 0.6 });
+      }
+    });
+  });
+  $.each(mapmarkers, function (i, marker) {
+    marker.setOpacity(0.2);
+  });
+}
+
+function restoreHilowlight() {
+  $.each(mapgroups, function (i, group) {
+    group.eachLayer(function (layer) {
+      if (layer instanceof L.Marker) {
+        layer.setZIndexOffset(10);
+        layer.setIcon(iconsMap[group._color]);
+        layer.setOpacity(1);
+      } else {
+        layer.setStyle({ weight: 5, color: colorMap[group._color], opacity: 0.75 });
+      }
+    });
+  });
+  $.each(mapmarkers, function (i, marker) {
+    marker.setOpacity(0.5);
+  });
+}
+
+function onMouseOverTrack(featuregroup) {
+  lowlightAll();
+  highlightFeaturegroup(featuregroup);
+  featuregroup.once('mouseout', function () {
+    onMouseOutTrack(featuregroup);
+  });
+}
+
+function onMouseOutTrack(featuregroup) {
+  restoreHilowlight();
+  featuregroup.once('mouseover', function () {
+    onMouseOverTrack(featuregroup);
+  });
+}
+
 function add(tracks, markers, index) {
   var b = null;
+  var featuregroups = [];
   $.each(tracks, function (i, track) {
-    var featuregroup = showTrack(track[0], colors[nextColor()]);
+    var color = colors[nextColor()];
+    var featuregroup = showTrack(track[0], color);
     if (featuregroup) {
-      featuregroup.on('mouseover', function () {
-        featuregroup.bringToFront();
+      featuregroup._color = color;
+      mapgroups.push(featuregroup);
+      // For some reason, mouseover is triggered continuously, and not only when mouse enter the feature group
+      // So we have to juggle with binding mouseover/mouseout
+      featuregroup.once('mouseover', function () {
+        onMouseOverTrack(featuregroup);
       });
       var featuregroupbounds = featuregroup.getBounds().pad(0.5);
       featuregroup.bindPopup(track[1]);
       b = (b === null) ? featuregroupbounds : b.extend(featuregroupbounds);
+      featuregroups.push(featuregroup);
     }
   });
   $.each(markers, function (i, marker) {
     var m = addMarker(marker[0], marker[1]);
+    mapmarkers.push(m);
     if (marker.length > 2) m.bindPopup(marker[2]);
   });
 
   if (index !== undefined && tracks.length > 0) {
     $('.split-grid a').eq(index).hover(function () {
       map.flyTo(b.getCenter());
+      lowlightAll();
+      $.each(featuregroups, function (i, featuregroup) {
+        highlightFeaturegroup(featuregroup);
+      })
     }, function () {
       if (bounds) map.flyToBounds(bounds);
+      restoreHilowlight();
     });
   }
 }

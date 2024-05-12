@@ -1,0 +1,40 @@
+[poweredby]
+other = """\
+    由 <a href="https://gohugo.io/">hugo</a> 和 \
+    <a href="https://gitlab.com/tmuguet/hugo-split-gallery">Hugo Split Gallery theme</a>提供支持 \
+    (灵感来自于 <a href="https://github.com/tmuguet/hugo-split-theme">Hugo Split Theme</a> 和 \
+    <a href="https://onepagelove.com/split">Split Template</a> 由 \
+    <a href="https://onepagelove.com">One Page Love</a>) \
+    """
+[sections]
+other = "部分"
+
+[seealso]
+other = "参见..."
+
+[publishedAt]
+other = "文章发表于 {{ . }}"
+
+[photosTakenOn]
+other = "照片拍摄于 {{ . }}"
+
+[downloadPhotos]
+other = "下载所有照片"
+
+[downloadGPXfile]
+other = "下载轨迹"
+
+[downloadGPXfileWithName]
+other = "下载轨迹 '{{ . }}'"
+
+[openGPXinmap2gpx]
+other = "在 map2gpx 中打开轨迹"
+
+[openGPXinmap2gpxWithName]
+other = "在 map2gpx 中 '{{ . }}'打开轨迹 "
+
+[error404]
+other = "不存在你要找的页面"
+
+[translations]
+other = "翻译"

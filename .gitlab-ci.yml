@@ -34,6 +34,7 @@ build-previous:
   parallel:
     matrix:
       - VERSION:
+        - "0.125.7"
         - "0.115.4"
         - "0.112.7"
         - "0.100.2"

@@ -6,3 +6,4 @@
 {{ with .Site.Params.galleryTransitionEffect }}$.fancybox.defaults.transitionEffect = {{ . }}; {{ end }}
 {{ with .Site.Params.galleryTransitionDuration }}$.fancybox.defaults.transitionDuration = {{ . }}; {{ end }}
 {{ with .Site.Params.gallerySlideshowSpeed }}$.fancybox.defaults.slideShow.speed = {{ . }}; {{ end }}
+$.fancybox.defaults.preload = 0;
